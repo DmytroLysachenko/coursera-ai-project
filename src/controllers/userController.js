@@ -23,6 +23,9 @@ const registerUser = async (req, res) => {
 
 // Login user
 const loginUser = async (req, res) => {
+
+console.log(req.body);
+
     const { email, password } = req.body;
 
     try {
@@ -43,6 +46,31 @@ const loginUser = async (req, res) => {
     }
 };
 
-// Add more user-related functions (e.g., get user, update user, etc.)
 
-module.exports = { registerUser, loginUser };
+const updateUser = async (req, res) => {
+    const { username, email, password } = req.body;
+    const { username: userParam } = req.params; // Extract username from request parameters
+
+    try {
+        const user = await User.findOne({ username: userParam });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update user fields
+        if (username) user.username = username;
+        if (email) user.email = email;
+        if (password) {
+            // Hash new password if provided
+            user.password = await bcrypt.hash(password, 10);
+        }
+
+        await user.save();
+        res.status(200).json({ message: 'User updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+module.exports = { registerUser, loginUser, updateUser };
